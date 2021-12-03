@@ -8,6 +8,8 @@
 #include <random>
 #include <queue>
 #include <vector>
+#include <climits>
+#include <time.h>
 
 using namespace std;
 using namespace std::chrono;
@@ -19,7 +21,7 @@ string* djikstra(char**, int, int, int);
 string* bellmanFord(Node**, int, int, int);
 string* bellmanFord(char**, int, int, int);
 
-int main(char* argv[], int argc) {
+int main(int argc, char* argv[]) {
     // Check usage
     if(argc != 4) {
         cerr << "USAGE: ./SerialTest INPUT_FILE OUTPUT_FILE NUM_ITERATIONS\n";
@@ -45,9 +47,10 @@ int main(char* argv[], int argc) {
 
     // Initialize Result Writer
     string headerList[8] {"start_node","end_node","d_dist","bf_dist","d_time_matrix","d_time_list","bf_time_matrix","bf_time_list"};
-    ResultWriter resultWriter(argv[2], headerList, 8, ',');
+    ResultWriter resultWriter(string(argv[2]), headerList, 8, ",");
 
     // Go through each iteration
+    srand(time(NULL));
     int numIterations;
     stringstream ss(argv[3]);
     ss >> numIterations;
@@ -122,11 +125,13 @@ string* djikstra(Node** adjList, int numNodes, int startNode, int endNode) {
         distance[i] = INT_MAX;
     }
     distance[startNode] = 0;
-    pq.push(pair(0, startNode));
+    pq.push(pi(0, startNode));
     while(!pq.empty()) {
         pi current = pq.top(); pq.pop();
         if(visited[current.second] == 1)
             continue;
+        if(current.second == endNode)
+            break;
         visited[current.second] = 1;
         Node* currNode = adjList[current.second];
         while(currNode != nullptr) {
@@ -134,6 +139,7 @@ string* djikstra(Node** adjList, int numNodes, int startNode, int endNode) {
                 distance[currNode->nodeId] = distance[current.second] + 1;
                 pq.push(pi(distance[currNode->nodeId], currNode->nodeId));
             }
+            currNode = currNode->next;
         }
     }
 
@@ -141,6 +147,10 @@ string* djikstra(Node** adjList, int numNodes, int startNode, int endNode) {
     auto duration = duration_cast<microseconds>(end-start);
     retStr[0] = to_string(distance[endNode]);
     retStr[1] = to_string(duration.count());
+
+    delete[] visited;
+    delete[] distance;
+
     return retStr;
 }
 
@@ -157,14 +167,16 @@ string* djikstra(char** adjMatrix, int numNodes, int startNode, int endNode) {
         distance[i] = INT_MAX;
     }
     distance[startNode] = 0;
-    pq.push(pair(0, startNode));
+    pq.push(pi(0, startNode));
     while(!pq.empty()) {
         pi current = pq.top(); pq.pop();
         if(visited[current.second] == 1)
             continue;
+        if(current.second == endNode)
+            break;
         visited[current.second] = 1;
         for(int i = 0; i < numNodes; i++) {
-            if((adjMatrix[current.second][i/8] & (0x80 >> (i%8)) != 0 ) && distance[current.second] + 1 < distance[i] && visited[i] == 0) {
+            if(((adjMatrix[current.second][i/8] & (0x80 >> (i%8))) != 0) && distance[current.second] + 1 < distance[i] && visited[i] == 0) {
                 distance[i] = distance[current.second] + 1;
                 pq.push(pi(distance[i], i));
             }
@@ -175,6 +187,10 @@ string* djikstra(char** adjMatrix, int numNodes, int startNode, int endNode) {
     auto duration = duration_cast<microseconds>(end-start);
     retStr[0] = to_string(distance[endNode]);
     retStr[1] = to_string(duration.count());
+
+    delete[] visited;
+    delete[] distance;
+    
     return retStr;
 }
 
@@ -193,7 +209,7 @@ string* bellmanFord(Node** adjList, int numNodes, int startNode, int endNode) {
             Node* currNode = adjList[i];
             while(currNode != nullptr) {
                 if(distance[i] == INT_MAX)
-                    continue;
+                    break;
                 else if (distance[i] + 1 < distance[currNode->nodeId]) {
                     changed = true;
                     distance[currNode->nodeId] = distance[i] + 1;
@@ -209,6 +225,9 @@ string* bellmanFord(Node** adjList, int numNodes, int startNode, int endNode) {
     auto duration = duration_cast<microseconds>(end-start);
     retStr[0] = to_string(distance[endNode]);
     retStr[1] = to_string(duration.count());
+
+    delete[] distance;
+
     return retStr;
 }
 
@@ -225,7 +244,7 @@ string* bellmanFord(char** adjMatrix, int numNodes, int startNode, int endNode) 
         bool changed = false;
         for(int i = 0; i < numNodes; i++) {
             for(int j = 0; j < numNodes; j++) {
-                if((adjMatrix[i][j/8] & (0x80 >> (j%8))) == 1) {
+                if((adjMatrix[i][j/8] & (0x80 >> (j%8))) != 0) {
                     if(distance[i] != INT_MAX && distance[i] + 1 < distance[j]) {
                         changed = true;
                         distance[j] = distance[i] + 1;
@@ -241,5 +260,8 @@ string* bellmanFord(char** adjMatrix, int numNodes, int startNode, int endNode) 
     auto duration = duration_cast<microseconds>(end-start);
     retStr[0] = to_string(distance[endNode]);
     retStr[1] = to_string(duration.count());
+
+    delete[] distance;
+
     return retStr;
 }

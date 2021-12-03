@@ -6,11 +6,11 @@
 
 class ResultWriter {
 public:
-    ResultWriter(std::string fName, std::string* headerList, int headerLength, char delim);
+    ResultWriter(std::string fName, std::string* headerList, int headerLength, std::string delim);
     std::string write(std::string* results);
     void close();
 private:
-    char delimeter;
+    std::string delimeter;
     int rowLength;
     std::ofstream file;
 };

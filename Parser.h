@@ -16,8 +16,8 @@ public:
     char** parse2AM();
     int getNumNodes();
 private:
-    void addEdge(Node* list, int start, int dest);
-    std::ifstream file;
+    void addEdge(Node** list, int start, int dest);
+    std::string fileName;
     int numNodes;
 };
 
