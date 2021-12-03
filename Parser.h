@@ -6,6 +6,7 @@
 
 struct Node {
     int nodeId;
+    short unsigned int weight;
     Node* next = nullptr;
 };
 
@@ -13,10 +14,10 @@ class Parser {
 public:
     Parser(std::string fname);
     Node** parse2LL();
-    char** parse2AM();
+    short unsigned int** parse2AM();
     int getNumNodes();
 private:
-    void addEdge(Node** list, int start, int dest);
+    void addEdge(Node** list, int start, int dest, short unsigned int weight);
     std::string fileName;
     int numNodes;
 };

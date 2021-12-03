@@ -1,26 +1,34 @@
 #include "Parser.h"
 #include <sstream>
+#include <random>
 
 using namespace std;
+
+#define SEED 100
 
 Parser::Parser(string fName) {
     fileName = fName;
 }
 
-void Parser::addEdge(Node** list, int start, int dest) {
+void Parser::addEdge(Node** list, int start, int dest, short unsigned int weight) {
     Node* newNode = new Node();
     newNode->nodeId = dest;
+    newNode->weight = weight;
 
     if(list[start] == nullptr)
         list[start] = newNode;
     else {
         Node* currNode = list[start];
-        if(currNode->nodeId == dest)
+        if(currNode->nodeId == dest) {
+            currNode->weight = weight;
             return;
+        }
         while (currNode->next != nullptr) {
             currNode = currNode->next;
-            if(currNode->nodeId == dest)
+            if(currNode->nodeId == dest) {
+                currNode->weight = weight;
                 return;
+            }
         }
         currNode->next = newNode;
     }
@@ -39,6 +47,7 @@ Node** Parser::parse2LL() {
     firstLine >> numNodes;
 
     // Create the array
+    srand(SEED);
     Node** adjacencyList = new Node*[numNodes];
     for(int i = 0; i < numNodes; i++)
         adjacencyList[i] = nullptr;
@@ -46,8 +55,9 @@ Node** Parser::parse2LL() {
     while(getline(file, currLine)) {
         stringstream line(currLine);
         line >> start >> dest;
-        addEdge(adjacencyList, start, dest);
-        addEdge(adjacencyList, dest, start);
+        short unsigned int weight = rand() % 256;
+        addEdge(adjacencyList, start, dest, weight);
+        addEdge(adjacencyList, dest, start, weight);
     }
 
     file.close();
@@ -55,7 +65,7 @@ Node** Parser::parse2LL() {
     return adjacencyList;
 }
 
-char** Parser::parse2AM() {
+short unsigned int** Parser::parse2AM() {
     // Read in the first line
     ifstream file(fileName);
     string currLine;
@@ -64,20 +74,21 @@ char** Parser::parse2AM() {
     firstLine >> numNodes;
 
     // Create the matrix
-    int compressedSize = (numNodes/8) + 1;
-    char** adjMatrix = new char*[numNodes];
+    srand(SEED);
+    short unsigned int** adjMatrix = new short unsigned int*[numNodes];
     for(int i = 0; i < numNodes; i++) {
-        adjMatrix[i] = new char[compressedSize];
-        for(int j = 0; j < compressedSize; j++) {
-            adjMatrix[i][j] = (char)0;
+        adjMatrix[i] = new short unsigned int[numNodes];
+        for(int j = 0; j < numNodes; j++) {
+            adjMatrix[i][j] = 0;
         }
     }
     int start, dest;
     while(getline(file, currLine)) {
         stringstream line(currLine);
         line >> start >> dest;
-        adjMatrix[start][dest/8] = adjMatrix[start][dest/8] | (0x80 >> (dest%8));
-        adjMatrix[dest][start/8] = adjMatrix[dest][start/8] | (0x80 >> (start%8));
+        short unsigned int weight = rand() % 256;
+        adjMatrix[start][dest] = weight;
+        adjMatrix[dest][start] = weight;
     }
 
     file.close();

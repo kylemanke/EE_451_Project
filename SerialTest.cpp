@@ -17,9 +17,9 @@ using namespace std::chrono;
 typedef pair<int, int> pi;
 
 string* djikstra(Node**, int, int, int);
-string* djikstra(char**, int, int, int);
+string* djikstra(short unsigned int**, int, int, int);
 string* bellmanFord(Node**, int, int, int);
-string* bellmanFord(char**, int, int, int);
+string* bellmanFord(short unsigned int**, int, int, int);
 
 int main(int argc, char* argv[]) {
     // Check usage
@@ -31,7 +31,7 @@ int main(int argc, char* argv[]) {
     Parser parser(argv[1]);
 
     auto start = high_resolution_clock::now();
-    char** adjMatrix = parser.parse2AM();
+    short unsigned int** adjMatrix = parser.parse2AM();
     auto end = high_resolution_clock::now();
     auto duration = duration_cast<microseconds>(end-start);
     cout << "Adjacency Matrix parsed in " << duration.count() << " ms\n";
@@ -135,8 +135,8 @@ string* djikstra(Node** adjList, int numNodes, int startNode, int endNode) {
         visited[current.second] = 1;
         Node* currNode = adjList[current.second];
         while(currNode != nullptr) {
-            if (distance[current.second] + 1 < distance[currNode->nodeId] && visited[currNode->nodeId] == 0) {
-                distance[currNode->nodeId] = distance[current.second] + 1;
+            if (distance[current.second] + currNode->weight < distance[currNode->nodeId] && visited[currNode->nodeId] == 0) {
+                distance[currNode->nodeId] = distance[current.second] + currNode->weight;
                 pq.push(pi(distance[currNode->nodeId], currNode->nodeId));
             }
             currNode = currNode->next;
@@ -154,7 +154,7 @@ string* djikstra(Node** adjList, int numNodes, int startNode, int endNode) {
     return retStr;
 }
 
-string* djikstra(char** adjMatrix, int numNodes, int startNode, int endNode) {
+string* djikstra(short unsigned int** adjMatrix, int numNodes, int startNode, int endNode) {
     string* retStr = new string[2];
     auto start = high_resolution_clock::now();
     
@@ -176,8 +176,8 @@ string* djikstra(char** adjMatrix, int numNodes, int startNode, int endNode) {
             break;
         visited[current.second] = 1;
         for(int i = 0; i < numNodes; i++) {
-            if(((adjMatrix[current.second][i/8] & (0x80 >> (i%8))) != 0) && distance[current.second] + 1 < distance[i] && visited[i] == 0) {
-                distance[i] = distance[current.second] + 1;
+            if((adjMatrix[current.second][i] != 0) && distance[current.second] + adjMatrix[current.second][i] < distance[i] && visited[i] == 0) {
+                distance[i] = distance[current.second] + adjMatrix[current.second][i];
                 pq.push(pi(distance[i], i));
             }
         }
@@ -210,9 +210,9 @@ string* bellmanFord(Node** adjList, int numNodes, int startNode, int endNode) {
             while(currNode != nullptr) {
                 if(distance[i] == INT_MAX)
                     break;
-                else if (distance[i] + 1 < distance[currNode->nodeId]) {
+                else if (distance[i] + currNode->weight < distance[currNode->nodeId]) {
                     changed = true;
-                    distance[currNode->nodeId] = distance[i] + 1;
+                    distance[currNode->nodeId] = distance[i] + currNode->weight;
                 }
                 currNode = currNode->next;
             }
@@ -231,7 +231,7 @@ string* bellmanFord(Node** adjList, int numNodes, int startNode, int endNode) {
     return retStr;
 }
 
-string* bellmanFord(char** adjMatrix, int numNodes, int startNode, int endNode) {
+string* bellmanFord(short unsigned int** adjMatrix, int numNodes, int startNode, int endNode) {
     string* retStr = new string[2];
     auto start = high_resolution_clock::now();
     
@@ -244,10 +244,10 @@ string* bellmanFord(char** adjMatrix, int numNodes, int startNode, int endNode) 
         bool changed = false;
         for(int i = 0; i < numNodes; i++) {
             for(int j = 0; j < numNodes; j++) {
-                if((adjMatrix[i][j/8] & (0x80 >> (j%8))) != 0) {
-                    if(distance[i] != INT_MAX && distance[i] + 1 < distance[j]) {
+                if(adjMatrix[i][j] != 0) {
+                    if(distance[i] != INT_MAX && distance[i] + adjMatrix[i][j] < distance[j]) {
                         changed = true;
-                        distance[j] = distance[i] + 1;
+                        distance[j] = distance[i] + adjMatrix[i][j];
                     }
                 }
             }
