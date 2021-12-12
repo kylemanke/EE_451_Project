@@ -8,17 +8,17 @@
 
 /* Custom includes */
 #include "Parser.h"
-#include "BellmanFord.h"
+#include "Dijkstra.h"
 
 using namespace std;
 using namespace std::chrono;
 
-#define NUM_THREADS 12
+#define NUM_THREADS 4
 
 int main(int argv, char* argc[]) {
-    // Check args: ./BellmanFord_Test INPUTFILE NUM_ITERATIONS
+    // Check args: ./Dijkstra_Test INPUTFILE NUM_ITERATIONS
     if(argv != 3) {
-        cout << "USAGE: ./BellmanFord_Test INPUT_FILE NUM_ITERATIONS\n";
+        cout << "USAGE: ./Dijkstra_Test INPUT_FILE NUM_ITERATIONS\n";
         return -1;
     }
 
@@ -47,11 +47,12 @@ int main(int argv, char* argc[]) {
 
         // Run the iteration
         cout << i << ": ";
-        string* returns = SerialBellmanFord(AdjList, numNodes, startNode, endNode);
+        string* returns = SerialDijkstra(AdjList, numNodes, startNode, endNode);
         cout << "Serial Distance: " << returns[0] << " Serial Time: " << returns[1] << " ";
         delete[] returns;
-        returns = ParallelBellmanFord(AdjList, numNodes, startNode, endNode, NUM_THREADS);
-        cout << "Parallel Distance: " << returns[0] << " Parallel Time: " << returns[1] << endl;
+
+        returns = ParallelDijkstra(AdjList, numNodes, startNode, endNode, NUM_THREADS);
+        cout << "Parallel Distance: " << returns[0] << " Serial Time: " << returns[1] << endl;
         delete[] returns;
     }
 
